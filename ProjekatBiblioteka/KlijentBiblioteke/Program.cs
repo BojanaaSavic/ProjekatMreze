@@ -39,15 +39,18 @@ namespace KlijentBiblioteke
                 Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.");
                 return;
             }
-            IPEndPoint serverEP = new IPEndPoint(selectedAddress, 50001);
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
             Console.WriteLine($"Naziv racunara je: {hostName}");
             Console.WriteLine($"Klijent šalje poruke serveru na: {serverEP}");
 
             Console.WriteLine("Klijent je spreman za povezivanje sa serverom, kliknite enter");
             Console.ReadKey();
             Pristupna.Connect(serverEP);
+            if (Pristupna.IsBound)
+                Console.WriteLine("TCP povezan");
             Info.Connect(serverEP);
-            Console.WriteLine("Klijent je uspesno povezan sa serverom!");
+            if (Info.IsBound)
+                Console.WriteLine("UDP povezan");
 
             while (true)
             {
