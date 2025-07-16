@@ -29,8 +29,10 @@ namespace ServerBiblioteke
             PristupSocket.Bind(serverEP);
             InfoSocket.Bind(serverEP);
 
+
             PristupSocket.Listen(5);
-            InfoSocket.Listen(10);
+            //InfoSocket.Listen(10);
+            //InfoSocket.Blocking = false;
 
 
             Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {serverEP}");
@@ -38,13 +40,14 @@ namespace ServerBiblioteke
             Socket pristupAccepted = PristupSocket.Accept();
             Console.WriteLine($"Povezao se klijent! Adresa: {pristupAccepted.RemoteEndPoint}");
 
-            Socket InfoAccepted = InfoSocket.Accept();
-            Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
+            //Socket InfoAccepted = InfoSocket.Accept();
+            //Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
 
             string hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
             IPAddress selectedAddress = null;
-            EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            
             byte[] buffer = new byte[1024];
 
             foreach (var address in addresses)
@@ -180,9 +183,7 @@ namespace ServerBiblioteke
                             }
 
                         }
-                        string response = $"Server odgovor: {message}";
-                        byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-                        PristupSocket.SendTo(responseBytes, clientEndPoint);
+                        
                     }
                     Console.WriteLine("\n Pritisnite 'enter' za meni.");
                     break;
