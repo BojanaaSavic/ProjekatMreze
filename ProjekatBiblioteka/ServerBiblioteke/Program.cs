@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ServerBiblioteke
 {
@@ -12,107 +14,177 @@ namespace ServerBiblioteke
     {
         static void Main(string[] args)
         {
+
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
             List<Knjiga> knjige = new List<Knjiga>();
-            Knjiga k  = new Knjiga("", "", 0);
+            List<Guid> idovi = new List<Guid>();
+            Knjiga k = new Knjiga("", "", 0);
+            int pozajmljeno = 0;
+            Socket PristupSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket InfoSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-            Console.WriteLine("Prvi test");
-            try
+
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 50001);
+
+            PristupSocket.Bind(serverEP);
+            InfoSocket.Bind(serverEP);
+
+            PristupSocket.Listen(5);
+            //InfoSocket.Listen(5);
+
+
+            Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {serverEP}");
+
+            Socket pristupAccepted = PristupSocket.Accept();
+            Console.WriteLine($"Povezao se klijent! Adresa: {pristupAccepted.RemoteEndPoint}");
+
+            //Socket InfoAccepted = InfoSocket.Accept();
+            //Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
+
+            string hostName = Dns.GetHostName();
+            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+            IPAddress selectedAddress = null;
+            EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            byte[] buffer = new byte[1024];
+
+            foreach (var address in addresses)
             {
-                // Pronalazi dostupnu IPv4 adresu
-                string hostName = Dns.GetHostName();
-                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
-                IPAddress selectedAddress = null;
-                Console.WriteLine("Drugi test");
-                foreach (var address in addresses)
+                if (address.AddressFamily == AddressFamily.InterNetwork) // Koristi IPv4
                 {
-                    if (address.AddressFamily == AddressFamily.InterNetwork) // Koristi IPv4
-                    {
-                        selectedAddress = address;
-                        break;
-                    }
+                    selectedAddress = address;
+                    break;
                 }
-                Console.WriteLine("Treci test");
-                if (selectedAddress == null)
-                {
-                    Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.\n");
-                    return;
-                }
-                Console.WriteLine("Cetvrti test");
-                // Kreira IPEndPoint za server
-                IPEndPoint serverEndPoint = new IPEndPoint(selectedAddress, 55555);
-                Socket INFO = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                Socket PRISTUPNA = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Console.WriteLine("Peti test");
-                // Povezivanje i slušanje
-                PRISTUPNA.Bind(serverEndPoint);
-                Console.WriteLine($"Naziv racunara je: {hostName}\n");
-                Console.WriteLine($"Server pokrenut na {PRISTUPNA.LocalEndPoint}\n");
-                //treba ispisati IP adrese i portove za UDP i TCP
-
-
-                Console.WriteLine("Ako zelite da unesete novu knjigu napisite 'unos'.\n");
-                string request = Console.ReadLine();
-                if (request.ToLower() == "unos")
-                {
-                    bool help = true;
-                    while (help)
-                    {
-                        Console.WriteLine("Unesite naziv knjige.\n");
-                        k.Naziv = Console.ReadLine();
-                        Console.WriteLine("Unesite autora knjige.\n");
-                        k.Autor = Console.ReadLine();
-                        Console.WriteLine("Unesite kolicinu knjiga.\n");
-                        k.Kolicina = int.Parse(Console.ReadLine());
-
-                        knjige.Add(k);
-                        Console.WriteLine("Da li zelite da unesete jos knjiga?\n DA/NE\n");
-                        string procitaj = Console.ReadLine();
-                        if (procitaj.ToLower() == "ne") help = false;
-                    }
-                }
-                    
-                
-
-                // Prima i šalje poruke
-                EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                byte[] buffer = new byte[1024];
-                while (true)
-                {
-                    int receivedBytes = PRISTUPNA.ReceiveFrom(buffer, ref clientEndPoint);
-                    string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                    Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
-
-                    if (message.ToLower() == "kraj") break;
-
-                    foreach(Knjiga n in knjige)
-                    {
-                        if ((n.Naziv == message) && (n.Kolicina > 0))
-                        {
-                            string odgovor = $"Trazena knjiga: {n.ToString()}";
-                            byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
-                            PRISTUPNA.SendTo(odgB, clientEndPoint);
-                        }
-                        else
-                        {
-                            string odgovor = "Ne postoji trazena knjiga";
-                            byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
-                            PRISTUPNA.SendTo(odgB, clientEndPoint);
-                        }
-                    }
-
-                    string response = $"Server odgovor: {message}";
-                    byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-                    PRISTUPNA.SendTo(responseBytes, clientEndPoint);
-                }
-
-                INFO.Close();
-                PRISTUPNA.Close();
-                Console.WriteLine("Server završio sa radom.");
-                Console.ReadKey();
             }
-            catch (SocketException ex)
+
+            if (selectedAddress == null)
             {
-                Console.WriteLine($"Socket greška: {ex.Message}");
+                Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.\n");
+                return;
+            }
+
+
+            Console.WriteLine($"Naziv racunara je: {hostName}\n");
+            Console.WriteLine($"Server pokrenut na {PristupSocket.LocalEndPoint} i na {InfoSocket.LocalEndPoint}\n ");
+
+            Console.WriteLine($"IP Adresa TCP: {serverEP.Address.ToString()}");
+            Console.WriteLine($"Port je: {serverEP.Port}");
+
+
+            Console.WriteLine("Izaberite zeljenu opciju.\n 1.Unos nove knjige\n 2.Provera stanja knjige\n 3.Podizanje knjige\n ");
+
+            int h = int.Parse(Console.ReadLine() ?? "");
+
+            //Napravi klasu za switch
+            while (true)
+            {
+                SwitchMetoda(h, k, knjige, idovi, InfoSocket, PristupSocket, buffer, clientEndPoint, binaryFormatter, pozajmljeno);
+                Console.WriteLine("Da li zelite kraj programa? DA/NE");
+                if (Console.ReadLine().ToLower() == "DA")
+                    break;
+            }
+
+            InfoSocket.Close();
+            PristupSocket.Close();
+            Console.WriteLine("Server završio sa radom.");
+            Console.ReadKey();
+        }
+
+        static void SwitchMetoda(int help, Knjiga k, List<Knjiga> knjige, List<Guid> idovi, Socket InfoSocket, Socket PristupSocket, byte[] buffer, EndPoint clientEndPoint, BinaryFormatter binaryFormatter, int p)
+        {
+            switch (help)
+            {
+                case 1:
+                    Console.WriteLine("Unesite naziv knjige.\n");
+                    k.Naziv = Console.ReadLine();
+                    Console.WriteLine("Unesite autora knjige.\n");
+                    k.Autor = Console.ReadLine();
+                    Console.WriteLine("Unesite kolicinu knjiga.\n");
+                    k.Kolicina = int.Parse(Console.ReadLine());
+
+                    knjige.Add(k);
+                    Console.WriteLine("\n Pritisnite 'enter' za meni.");
+                    break;
+                case 2:
+                    while (true)
+                    {
+                        int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
+                        string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                        Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
+
+                        Guid id = Guid.NewGuid();
+                        idovi.Add(id);
+
+
+                        if (receivedBytes == 0) break;
+
+                        foreach (Knjiga n in knjige)
+                        {
+                            if ((n.Naziv == message) && (n.Kolicina > 0))
+                            {
+                                string odgovor = $"Trazena knjiga: {n.ToString()}";
+                                byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                InfoSocket.SendTo(odgB, clientEndPoint);
+                            }
+                            else
+                            {
+                                string odgovor = "Ne postoji trazena knjiga";
+                                byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                InfoSocket.SendTo(odgB, clientEndPoint);
+                            }
+                        }
+
+                        string response = $"Server odgovor: {message}";
+                        byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+                        InfoSocket.SendTo(responseBytes, clientEndPoint);
+                    }
+                    Console.WriteLine("\n Pritisnite 'enter' za meni.");
+                    break;
+                case 3:
+
+                    while (true)
+                    {
+                        int receivedBytes = PristupSocket.ReceiveFrom(buffer, ref clientEndPoint);
+                        string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+
+
+                        Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
+
+
+
+                        if (receivedBytes == 0) break;
+
+                        using (MemoryStream ms = new MemoryStream(buffer, 0, receivedBytes))
+                        {
+                            Knjiga kk = (Knjiga)binaryFormatter.Deserialize(ms);
+                            foreach (Knjiga n in knjige)
+                            {
+                                if ((kk.Naziv == n.Naziv) && (n.Kolicina > kk.Kolicina))
+                                {
+                                    string odgovor = $"Knjiga je uspesno pozajmljena";
+                                    p++;
+                                    n.Kolicina -= kk.Kolicina;
+                                    byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                    PristupSocket.SendTo(odgB, clientEndPoint);
+                                }
+                                else
+                                {
+                                    string odgovor = "Ne postoji toliko primeraka trazene knjige";
+                                    byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                    PristupSocket.SendTo(odgB, clientEndPoint);
+                                }
+                            }
+
+                        }
+                        string response = $"Server odgovor: {message}";
+                        byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+                        PristupSocket.SendTo(responseBytes, clientEndPoint);
+                    }
+                    Console.WriteLine("\n Pritisnite 'enter' za meni.");
+                    break;
+
+                default:
+                    Console.WriteLine("Pogresno unesen broj");
+                    break;
             }
         }
     }
