@@ -1,0 +1,7 @@
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\bin\Debug\KlijentBiblioteke.exe.config
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\bin\Debug\KlijentBiblioteke.exe
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\bin\Debug\KlijentBiblioteke.pdb
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\obj\Debug\KlijentBiblioteke.csproj.AssemblyReference.cache
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\obj\Debug\KlijentBiblioteke.csproj.CoreCompileInputs.cache
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\obj\Debug\KlijentBiblioteke.exe
+C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\Projekat\ProjekatBiblioteka\KlijentBiblioteke\obj\Debug\KlijentBiblioteke.pdb
