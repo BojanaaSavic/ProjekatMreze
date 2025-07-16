@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServerBiblioteke
 {
+    [Serializable]
     public class Knjiga
     {
         public string Naziv = "";
@@ -17,6 +18,11 @@ namespace ServerBiblioteke
             Naziv = naziv;
             Autor = autor;
             Kolicina = kolicina;
+        }
+
+        public override string ToString()
+        {
+            return Naziv + " " + Autor + " " + Kolicina;
         }
     }
 }

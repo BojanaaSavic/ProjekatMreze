@@ -49,13 +49,9 @@ namespace KlijentBiblioteke
             Info.Connect(serverEP);
             Console.WriteLine("Klijent je uspesno povezan sa serverom!");
 
-            Console.WriteLine("Izaberite zeljenu opciju.\n 1.Provera stanja knjige\n 2.Podizanje knjige\n ");
-
-            int h = int.Parse(Console.ReadLine() ?? "");
-
             while (true)
             {
-                SwitchMetoda(h, Info, Pristupna, serverEP, buffer, binaryFormatter);
+                SwitchMetoda(Info, Pristupna, serverEP, buffer, binaryFormatter);
                // Console.WriteLine("Da li zelite kraj programa? DA/NE");
                 if (Console.ReadLine().ToLower() == "DA")
                     break;
@@ -67,8 +63,11 @@ namespace KlijentBiblioteke
             Console.ReadKey();
         }
 
-        static void SwitchMetoda(int h, Socket Info, Socket Pristupna, IPEndPoint serverEP, byte[] buffer, BinaryFormatter binaryFormatter)
+        static void SwitchMetoda(Socket Info, Socket Pristupna, IPEndPoint serverEP, byte[] buffer, BinaryFormatter binaryFormatter)
         {
+            Console.WriteLine("Izaberite zeljenu opciju.\n 1.Provera stanja knjige\n 2.Podizanje knjige\n ");
+            int h = int.Parse(Console.ReadLine() ?? "");
+
             switch (h)
             {
                 case 1:

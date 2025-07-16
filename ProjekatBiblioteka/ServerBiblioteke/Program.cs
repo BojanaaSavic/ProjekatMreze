@@ -30,7 +30,7 @@ namespace ServerBiblioteke
             InfoSocket.Bind(serverEP);
 
             PristupSocket.Listen(5);
-            //InfoSocket.Listen(5);
+            InfoSocket.Listen(10);
 
 
             Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {serverEP}");
@@ -38,8 +38,8 @@ namespace ServerBiblioteke
             Socket pristupAccepted = PristupSocket.Accept();
             Console.WriteLine($"Povezao se klijent! Adresa: {pristupAccepted.RemoteEndPoint}");
 
-            //Socket InfoAccepted = InfoSocket.Accept();
-            //Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
+            Socket InfoAccepted = InfoSocket.Accept();
+            Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
 
             string hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
@@ -70,7 +70,6 @@ namespace ServerBiblioteke
             Console.WriteLine($"Port je: {serverEP.Port}");
 
 
-            Console.WriteLine("Izaberite zeljenu opciju.\n 1.Unos nove knjige\n 2.Provera stanja knjige\n 3.Podizanje knjige\n ");
 
             //int h = int.Parse(Console.ReadLine() ?? "");
 
@@ -91,7 +90,10 @@ namespace ServerBiblioteke
 
         static void SwitchMetoda(Knjiga k, List<Knjiga> knjige, List<Guid> idovi, Socket InfoSocket, Socket PristupSocket, byte[] buffer, EndPoint clientEndPoint, BinaryFormatter binaryFormatter, int p)
         {
-           int h = int.Parse(Console.ReadLine() ?? "");
+
+            Console.WriteLine("Izaberite zeljenu opciju.\n 1.Unos nove knjige\n 2.Provera stanja knjige\n 3.Podizanje knjige\n ");
+
+            int h = int.Parse(Console.ReadLine() ?? "");
             switch (h)
             {
                 case 1:
@@ -116,27 +118,29 @@ namespace ServerBiblioteke
                         idovi.Add(id);
 
 
-                        if (receivedBytes == 0) break;
+                        if (message.ToLower() == "kraj") break;
+                        string odgovor;
+                        byte[] odgB;
 
                         foreach (Knjiga n in knjige)
                         {
                             if ((n.Naziv == message) && (n.Kolicina > 0))
                             {
-                                string odgovor = $"Trazena knjiga: {n.ToString()}";
-                                byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                odgovor = $"Trazena knjiga: {n.ToString()}";
+                                odgB = Encoding.UTF8.GetBytes(odgovor);
                                 InfoSocket.SendTo(odgB, clientEndPoint);
                             }
                             else
                             {
-                                string odgovor = "Ne postoji trazena knjiga";
-                                byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                odgovor = "Ne postoji trazena knjiga";
+                                odgB = Encoding.UTF8.GetBytes(odgovor);
                                 InfoSocket.SendTo(odgB, clientEndPoint);
                             }
                         }
 
-                        string response = $"Server odgovor: {message}";
+                        /*string response = $"Server odgovor: {odgB}";
                         byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-                        InfoSocket.SendTo(responseBytes, clientEndPoint);
+                        InfoSocket.SendTo(responseBytes, clientEndPoint);*/
                     }
                     Console.WriteLine("\n Pritisnite 'enter' za meni.");
                     break;
@@ -152,7 +156,7 @@ namespace ServerBiblioteke
 
 
 
-                        if (receivedBytes == 0) break;
+                        if (message.ToLower() == "kraj") break;
 
                         using (MemoryStream ms = new MemoryStream(buffer, 0, receivedBytes))
                         {
