@@ -39,7 +39,7 @@ namespace KlijentBiblioteke
                 Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.");
                 return;
             }
-            IPEndPoint serverEP = new IPEndPoint(selectedAddress, 55555);
+            IPEndPoint serverEP = new IPEndPoint(selectedAddress, 50001);
             Console.WriteLine($"Naziv racunara je: {hostName}");
             Console.WriteLine($"Klijent šalje poruke serveru na: {serverEP}");
 
@@ -55,73 +55,7 @@ namespace KlijentBiblioteke
 
             while (true)
             {
-                switch (h)
-                {
-                    case 1:
-                        while (true)
-                        {
-                            Console.Write("Unesite naziv knjige za server (ili 'kraj' za izlaz): ");
-                            string message = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(message)) continue;
-
-                            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-                            Info.SendTo(messageBytes, serverEP);
-
-                            if (message.ToLower() == "kraj") break;
-
-                            EndPoint serverResponseEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                            int receivedBytes = Info.ReceiveFrom(buffer, ref serverResponseEndPoint);
-
-                            string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                            Console.WriteLine($"Odgovor od servera: {response}");
-
-                        }
-                        Console.WriteLine("\n Pritisnite 'enter' za meni.");
-                        break;
-                    case 2:
-                        while (true)
-                        {
-                            Console.WriteLine("Unesite naziv: ");
-                            string naziv = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(naziv)) continue;
-
-                            Console.WriteLine("Unesite autora: ");
-                            string autor = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(autor)) continue;
-
-                            Console.WriteLine("Unesite kolicinu: ");
-                            int kolicina = Convert.ToInt32(Console.ReadLine());
-
-
-                            Knjiga knjiga = new Knjiga(naziv, autor, kolicina);
-
-                            using (MemoryStream ms = new MemoryStream())
-                            {
-                                binaryFormatter.Serialize(ms, knjiga);
-                                byte[] data = ms.ToArray();
-                                Pristupna.Send(data);
-                            }
-
-                            Console.WriteLine("Unesite 'kraj' za izlaz");
-                            string message = Console.ReadLine();
-                            if (message.ToLower() == "kraj") break;
-
-
-                            EndPoint serverResponseEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                            int receivedBytes = Pristupna.ReceiveFrom(buffer, ref serverResponseEndPoint);
-
-                            string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                            Console.WriteLine($"Odgovor od servera: {response}");
-                        }
-                        Console.WriteLine("\n Pritisnite 'enter' za meni.");
-                        break;
-
-                    default:
-                        Console.WriteLine("Pogresno unesen broj");
-                        break;
-
-                }
-
+                SwitchMetoda(h, Info, Pristupna, serverEP, buffer, binaryFormatter);
                 Console.WriteLine("Da li zelite kraj programa? DA/NE");
                 if (Console.ReadLine().ToLower() == "DA")
                     break;
@@ -131,6 +65,76 @@ namespace KlijentBiblioteke
             Pristupna.Close();
             Console.WriteLine("Klijent završio sa radom.");
             Console.ReadKey();
+        }
+
+        static void SwitchMetoda(int h, Socket Info, Socket Pristupna, IPEndPoint serverEP, byte[] buffer, BinaryFormatter binaryFormatter)
+        {
+            switch (h)
+            {
+                case 1:
+                    while (true)
+                    {
+                        Console.Write("Unesite naziv knjige za server (ili 'kraj' za izlaz): ");
+                        string message = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(message)) continue;
+
+                        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                        Info.SendTo(messageBytes, serverEP);
+
+                        if (message.ToLower() == "kraj") break;
+
+                        EndPoint serverResponseEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                        int receivedBytes = Info.ReceiveFrom(buffer, ref serverResponseEndPoint);
+
+                        string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                        Console.WriteLine($"Odgovor od servera: {response}");
+
+                    }
+                    Console.WriteLine("\n Pritisnite 'enter' za meni.");
+                    break;
+                case 2:
+                    while (true)
+                    {
+                        Console.WriteLine("Unesite naziv: ");
+                        string naziv = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(naziv)) continue;
+
+                        Console.WriteLine("Unesite autora: ");
+                        string autor = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(autor)) continue;
+
+                        Console.WriteLine("Unesite kolicinu: ");
+                        int kolicina = Convert.ToInt32(Console.ReadLine());
+
+
+                        Knjiga knjiga = new Knjiga(naziv, autor, kolicina);
+
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            binaryFormatter.Serialize(ms, knjiga);
+                            byte[] data = ms.ToArray();
+                            Pristupna.Send(data);
+                        }
+
+                        Console.WriteLine("Unesite 'kraj' za izlaz");
+                        string message = Console.ReadLine();
+                        if (message.ToLower() == "kraj") break;
+
+
+                        EndPoint serverResponseEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                        int receivedBytes = Pristupna.ReceiveFrom(buffer, ref serverResponseEndPoint);
+
+                        string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                        Console.WriteLine($"Odgovor od servera: {response}");
+                    }
+                    Console.WriteLine("\n Pritisnite 'enter' za meni.");
+                    break;
+
+                default:
+                    Console.WriteLine("Pogresno unesen broj");
+                    break;
+
+            }
         }
     }
 }
