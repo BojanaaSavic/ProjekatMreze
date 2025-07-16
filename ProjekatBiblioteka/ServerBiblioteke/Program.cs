@@ -72,13 +72,13 @@ namespace ServerBiblioteke
 
             Console.WriteLine("Izaberite zeljenu opciju.\n 1.Unos nove knjige\n 2.Provera stanja knjige\n 3.Podizanje knjige\n ");
 
-            int h = int.Parse(Console.ReadLine() ?? "");
+            //int h = int.Parse(Console.ReadLine() ?? "");
 
             //Napravi klasu za switch
             while (true)
             {
-                SwitchMetoda(h, k, knjige, idovi, InfoSocket, PristupSocket, buffer, clientEndPoint, binaryFormatter, pozajmljeno);
-                Console.WriteLine("Da li zelite kraj programa? DA/NE");
+                SwitchMetoda(k, knjige, idovi, InfoSocket, PristupSocket, buffer, clientEndPoint, binaryFormatter, pozajmljeno);
+                //Console.WriteLine("Da li zelite kraj programa? DA/NE");
                 if (Console.ReadLine().ToLower() == "DA")
                     break;
             }
@@ -89,9 +89,10 @@ namespace ServerBiblioteke
             Console.ReadKey();
         }
 
-        static void SwitchMetoda(int help, Knjiga k, List<Knjiga> knjige, List<Guid> idovi, Socket InfoSocket, Socket PristupSocket, byte[] buffer, EndPoint clientEndPoint, BinaryFormatter binaryFormatter, int p)
+        static void SwitchMetoda(Knjiga k, List<Knjiga> knjige, List<Guid> idovi, Socket InfoSocket, Socket PristupSocket, byte[] buffer, EndPoint clientEndPoint, BinaryFormatter binaryFormatter, int p)
         {
-            switch (help)
+           int h = int.Parse(Console.ReadLine() ?? "");
+            switch (h)
             {
                 case 1:
                     Console.WriteLine("Unesite naziv knjige.\n");

@@ -56,7 +56,7 @@ namespace KlijentBiblioteke
             while (true)
             {
                 SwitchMetoda(h, Info, Pristupna, serverEP, buffer, binaryFormatter);
-                Console.WriteLine("Da li zelite kraj programa? DA/NE");
+               // Console.WriteLine("Da li zelite kraj programa? DA/NE");
                 if (Console.ReadLine().ToLower() == "DA")
                     break;
             }
@@ -87,7 +87,7 @@ namespace KlijentBiblioteke
                         int receivedBytes = Info.ReceiveFrom(buffer, ref serverResponseEndPoint);
 
                         string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                        Console.WriteLine($"Odgovor od servera: {response}");
+                        Console.WriteLine($"{response}");
 
                     }
                     Console.WriteLine("\n Pritisnite 'enter' za meni.");
