@@ -12,6 +12,8 @@ namespace ServerBiblioteke
 {
     public class Program
     {
+        private static int brojPokusaja;
+
         static void Main(string[] args)
         {
 
@@ -20,14 +22,17 @@ namespace ServerBiblioteke
             List<Guid> idovi = new List<Guid>();
             Knjiga k = new Knjiga("", "", 0);
             int pozajmljeno = 0;
+            byte[] buffer = new byte[1024];
             Socket PristupSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket InfoSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
 
             IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 5000);
+            EndPoint posiljaocEP = new IPEndPoint(IPAddress.Any, 0);
 
             PristupSocket.Bind(new IPEndPoint(IPAddress.Any, 5000));
             InfoSocket.Bind(new IPEndPoint(IPAddress.Any, 5000));
+            InfoSocket.Blocking = false;
 
 
             PristupSocket.Listen(4000);
@@ -39,16 +44,15 @@ namespace ServerBiblioteke
 
             Socket pristupAccepted = PristupSocket.Accept();
             Console.WriteLine($"Povezao se klijent! Adresa: {pristupAccepted.RemoteEndPoint}");
+            pristupAccepted.Blocking = false; 
 
-            //Socket InfoAccepted = InfoSocket.Accept();
-            //Console.WriteLine($"Povezao se klijent! Adresa: {InfoAccepted.RemoteEndPoint}");
 
             string hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
             //IPAddress selectedAddress = null;
             EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
             
-            byte[] buffer = new byte[1024];
+           
 
             /*foreach (var address in addresses)
             {
@@ -72,12 +76,10 @@ namespace ServerBiblioteke
             Console.WriteLine($"Port je: {serverEP.Port}");
 
 
-
-            //int h = int.Parse(Console.ReadLine() ?? "");
-
             //Napravi klasu za switch
             while (true)
             {
+              
                 SwitchMetoda(k, knjige, idovi, InfoSocket, PristupSocket, buffer, clientEndPoint, binaryFormatter, pozajmljeno);
                 //Console.WriteLine("Da li zelite kraj programa? DA/NE");
                 if (Console.ReadLine().ToLower() == "DA")
@@ -112,31 +114,48 @@ namespace ServerBiblioteke
                 case 2:
                     while (true)
                     {
-                        int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
-                        string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                        Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
+                       
 
-                        Guid id = Guid.NewGuid();
-                        idovi.Add(id);
-
-
-                        if (message.ToLower() == "kraj") break;
-                        string odgovor;
-                        byte[] odgB;
-
-                        foreach (Knjiga n in knjige)
+                        if (InfoSocket.Poll(1000 * 1000, SelectMode.SelectRead))
                         {
-                            if ((n.Naziv == message) && (n.Kolicina > 0))
+
+                            int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
+                            string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                            Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
+
+                            Guid id = Guid.NewGuid();
+                            idovi.Add(id);
+
+
+                            if (message.ToLower() == "kraj") break;
+                            string odgovor;
+                            byte[] odgB;
+
+                            foreach (Knjiga n in knjige)
                             {
-                                odgovor = $"Trazena knjiga: {n.ToString()}";
-                                odgB = Encoding.UTF8.GetBytes(odgovor);
-                                InfoSocket.SendTo(odgB, clientEndPoint);
+                                if ((n.Naziv == message) && (n.Kolicina > 0))
+                                {
+                                    odgovor = $"Trazena knjiga: {n.ToString()}";
+                                    odgB = Encoding.UTF8.GetBytes(odgovor);
+                                    InfoSocket.SendTo(odgB, clientEndPoint);
+                                }
+                                else
+                                {
+                                    odgovor = "Ne postoji trazena knjiga";
+                                    odgB = Encoding.UTF8.GetBytes(odgovor);
+                                    InfoSocket.SendTo(odgB, clientEndPoint);
+                                }
                             }
-                            else
+                            brojPokusaja = 0;
+                        }
+                        else
+                        {
+
+                            Console.WriteLine($"Pokusaj {++brojPokusaja}: nije primljena poruka...\n");
+                            if (brojPokusaja == 30)
                             {
-                                odgovor = "Ne postoji trazena knjiga";
-                                odgB = Encoding.UTF8.GetBytes(odgovor);
-                                InfoSocket.SendTo(odgB, clientEndPoint);
+                                brojPokusaja = 0;
+                                break;
                             }
                         }
 
@@ -161,37 +180,50 @@ namespace ServerBiblioteke
                         Console.WriteLine($"Poruka od {clientEndPoint}: {message}");*/
                         Console.WriteLine("Cekam klijenta");
 
-                        int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
-                        string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                        //Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
-
-                        if (message.ToLower() == "kraj") break;
-
-                        using (MemoryStream ms = new MemoryStream(buffer, 0, receivedBytes))
+                        if (InfoSocket.Poll(1000 * 1000, SelectMode.SelectRead))
                         {
-                            Knjiga kk = (Knjiga)binaryFormatter.Deserialize(ms);
-                            foreach (Knjiga n in knjige)
-                            {
-                                if ((kk.Naziv == n.Naziv) && (n.Kolicina > kk.Kolicina))
-                                {
-                                    string odgovor = $"Knjiga je uspesno pozajmljena";
-                                    p++;
-                                    n.Kolicina -= kk.Kolicina;
-                                    byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
-                                    //PristupSocket.Send(odgB);
-                                    InfoSocket.SendTo(odgB, clientEndPoint);
-                                }
-                                else
-                                {
-                                    string odgovor = "Ne postoji toliko primeraka trazene knjige";
-                                    byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
-                                    //PristupSocket.Send(odgB);
-                                    InfoSocket.SendTo(odgB, clientEndPoint);
-                                }
-                            }
+                            int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
+                            string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                            //Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
 
+                            if (message.ToLower() == "kraj") break;
+
+                            using (MemoryStream ms = new MemoryStream(buffer, 0, receivedBytes))
+                            {
+                                Knjiga kk = (Knjiga)binaryFormatter.Deserialize(ms);
+                                foreach (Knjiga n in knjige)
+                                {
+                                    if ((kk.Naziv == n.Naziv) && (n.Kolicina > kk.Kolicina))
+                                    {
+                                        string odgovor = $"Knjiga je uspesno pozajmljena";
+                                        p++;
+                                        n.Kolicina -= kk.Kolicina;
+                                        byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                        //PristupSocket.Send(odgB);
+                                        InfoSocket.SendTo(odgB, clientEndPoint);
+                                    }
+                                    else
+                                    {
+                                        string odgovor = "Ne postoji toliko primeraka trazene knjige";
+                                        byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
+                                        //PristupSocket.Send(odgB);
+                                        InfoSocket.SendTo(odgB, clientEndPoint);
+                                    }
+                                }
+
+                            }
                         }
-                        
+                        else
+                        {
+
+                            Console.WriteLine($"Pokusaj {++brojPokusaja}: nije primljena poruka...\n");
+                            if (brojPokusaja == 30)
+                            {
+                                brojPokusaja = 0;
+                                break;
+                            }
+                        }
+
                     }
                     Console.WriteLine("\n Pritisnite 'enter' za meni.");
                     break;

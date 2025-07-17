@@ -46,12 +46,7 @@ namespace KlijentBiblioteke
             Console.WriteLine("Klijent je spreman za povezivanje sa serverom, kliknite enter");
             Console.ReadKey();
             Pristupna.Connect(serverEP);
-            if (Pristupna.IsBound)
-                Console.WriteLine("TCP povezan");
-            Info.Connect(serverEP);
-            if (Info.IsBound)
-                Console.WriteLine("UDP povezan");
-
+            
             while (true)
             {
                 SwitchMetoda(Info, Pristupna, serverEP, buffer, binaryFormatter);
