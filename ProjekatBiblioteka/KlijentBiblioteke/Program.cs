@@ -23,7 +23,7 @@ namespace KlijentBiblioteke
             byte[] buffer = new byte[1024];
 
             string hostName = Dns.GetHostName();
-            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+            /*IPAddress[] addresses = Dns.GetHostAddresses(hostName);
             IPAddress selectedAddress = null;
             foreach (var address in addresses)
             {
@@ -38,8 +38,8 @@ namespace KlijentBiblioteke
             {
                 Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.");
                 return;
-            }
-            IPEndPoint serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
+            }*/
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5000);
             Console.WriteLine($"Naziv racunara je: {hostName}");
             Console.WriteLine($"Klijent šalje poruke serveru na: {serverEP}");
 
@@ -115,19 +115,20 @@ namespace KlijentBiblioteke
                         {
                             binaryFormatter.Serialize(ms, knjiga);
                             byte[] data = ms.ToArray();
-                            Pristupna.Send(data);
+                            Info.SendTo(data, serverEP);
                         }
-
-                        Console.WriteLine("Unesite 'kraj' za izlaz");
-                        string message = Console.ReadLine();
-                        if (message.ToLower() == "kraj") break;
-
-
                         EndPoint serverResponseEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                        int receivedBytes = Pristupna.ReceiveFrom(buffer, ref serverResponseEndPoint);
+                        int receivedBytes = Info.ReceiveFrom(buffer, ref serverResponseEndPoint);
 
                         string response = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
                         Console.WriteLine($"Odgovor od servera: {response}");
+
+                        Console.WriteLine("Unesite 'kraj' za izlaz");
+                        string message = Console.ReadLine();
+
+                        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                        Info.SendTo(messageBytes, serverEP);
+                        if (message.ToLower() == "kraj") break;
                     }
                     Console.WriteLine("\n Pritisnite 'enter' za meni.");
                     break;

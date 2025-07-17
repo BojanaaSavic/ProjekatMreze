@@ -24,10 +24,10 @@ namespace ServerBiblioteke
             Socket InfoSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
 
-            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 50001);
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 5000);
 
-            PristupSocket.Bind(serverEP);
-            InfoSocket.Bind(serverEP);
+            PristupSocket.Bind(new IPEndPoint(IPAddress.Any, 5000));
+            InfoSocket.Bind(new IPEndPoint(IPAddress.Any, 5000));
 
 
             PristupSocket.Listen(4000);
@@ -45,14 +45,12 @@ namespace ServerBiblioteke
 
             string hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
-            IPAddress selectedAddress = null;
-            IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-            if (pristupAccepted.Connected) Console.WriteLine("Test 1");
+            //IPAddress selectedAddress = null;
+            EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
             
             byte[] buffer = new byte[1024];
 
-            foreach (var address in addresses)
+            /*foreach (var address in addresses)
             {
                 if (address.AddressFamily == AddressFamily.InterNetwork) // Koristi IPv4
                 {
@@ -61,15 +59,11 @@ namespace ServerBiblioteke
                 }
             }
 
-            if (pristupAccepted.Connected) Console.WriteLine("Test 1");
-
             if (selectedAddress == null)
             {
                 Console.WriteLine("IPv4 adresa nije pronađena. Proverite mrežne postavke.\n");
                 return;
-            }
-
-            if (pristupAccepted.Connected) Console.WriteLine("Test 1");
+            }*/
 
             Console.WriteLine($"Naziv racunara je: {hostName}\n");
             Console.WriteLine($"Server pokrenut na {PristupSocket.LocalEndPoint} i na {InfoSocket.LocalEndPoint}\n ");
@@ -156,7 +150,7 @@ namespace ServerBiblioteke
 
                     while (true)
                     {
-                        if (PristupSocket.IsBound)
+                        /*if (PristupSocket.IsBound)
                             Console.WriteLine("TCP povezan");
                         
                         //int receiveBytes = PristupSocket.Receive(buffer);
@@ -164,9 +158,12 @@ namespace ServerBiblioteke
                         string message = Encoding.UTF8.GetString(buffer);
 
 
-                        Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
+                        Console.WriteLine($"Poruka od {clientEndPoint}: {message}");*/
+                        Console.WriteLine("Cekam klijenta");
 
-
+                        int receivedBytes = InfoSocket.ReceiveFrom(buffer, ref clientEndPoint);
+                        string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                        //Console.WriteLine($"Poruka od {clientEndPoint}: {message}");
 
                         if (message.ToLower() == "kraj") break;
 
@@ -182,14 +179,14 @@ namespace ServerBiblioteke
                                     n.Kolicina -= kk.Kolicina;
                                     byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
                                     //PristupSocket.Send(odgB);
-                                    PristupSocket.SendTo(odgB, clientEndPoint);
+                                    InfoSocket.SendTo(odgB, clientEndPoint);
                                 }
                                 else
                                 {
                                     string odgovor = "Ne postoji toliko primeraka trazene knjige";
                                     byte[] odgB = Encoding.UTF8.GetBytes(odgovor);
                                     //PristupSocket.Send(odgB);
-                                    PristupSocket.SendTo(odgB, clientEndPoint);
+                                    InfoSocket.SendTo(odgB, clientEndPoint);
                                 }
                             }
 
