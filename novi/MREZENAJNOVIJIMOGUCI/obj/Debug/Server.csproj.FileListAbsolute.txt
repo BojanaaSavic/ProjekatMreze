@@ -7,3 +7,10 @@ C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\NewProjekat\novi\MREZENAJNOVI
 C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\NewProjekat\novi\MREZENAJNOVIJIMOGUCI\bin\Debug\MREZENAJNOVIJIMOGUCI.pdb
 C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\NewProjekat\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\MREZENAJNOVIJIMOGUCI.exe
 C:\Users\Korisnik\Desktop\Bojana\School\Faks\Mreze\NewProjekat\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\MREZENAJNOVIJIMOGUCI.pdb
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\bin\Debug\MREZENAJNOVIJIMOGUCI.exe.config
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\bin\Debug\MREZENAJNOVIJIMOGUCI.exe
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\bin\Debug\MREZENAJNOVIJIMOGUCI.pdb
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\Server.csproj.AssemblyReference.cache
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\Server.csproj.CoreCompileInputs.cache
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\MREZENAJNOVIJIMOGUCI.exe
+C:\Users\Korisnik\source\nooviiiiii\novi\MREZENAJNOVIJIMOGUCI\obj\Debug\MREZENAJNOVIJIMOGUCI.pdb

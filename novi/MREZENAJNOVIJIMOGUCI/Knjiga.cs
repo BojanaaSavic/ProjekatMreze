@@ -19,7 +19,9 @@ namespace MREZENAJNOVIJIMOGUCI
                 Kolicina = kolicina;
             }
 
-            public override string ToString()
+             public Knjiga() { }
+
+        public override string ToString()
             {
                 return $"{Naslov} - {Autor} ({Kolicina})";
             }

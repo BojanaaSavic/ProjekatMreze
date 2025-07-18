@@ -38,6 +38,28 @@ namespace Server
             knjige.Add(new Knjiga("Na Drini ćuprija", "Ivo Andrić", 5));
             knjige.Add(new Knjiga("Prokleta avlija", "Ivo Andrić", 3));
 
+            bool dodaj = false;
+
+            Console.WriteLine("Da li zelite da unesete novu knjigu: DA/NE ?");
+            if (Console.ReadLine() == "DA")
+            {
+                dodaj = true;
+                while(dodaj == true)
+                {
+                    Knjiga k = new Knjiga();
+                    Console.WriteLine("Unesite naziv knjige.\n");
+                    k.Naslov = Console.ReadLine();
+                    Console.WriteLine("Unesite autora knjige.\n");
+                    k.Autor = Console.ReadLine();
+                    Console.WriteLine("Unesite kolicinu knjiga.\n");
+                    k.Kolicina = int.Parse(Console.ReadLine());
+
+                    knjige.Add(k);
+                    
+                }
+                
+            }
+
             Thread tcpThread = new Thread(ObradiTCP);
             tcpThread.Start();
 
