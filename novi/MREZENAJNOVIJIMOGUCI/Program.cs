@@ -38,26 +38,27 @@ namespace Server
             knjige.Add(new Knjiga("Na Drini ćuprija", "Ivo Andrić", 5));
             knjige.Add(new Knjiga("Prokleta avlija", "Ivo Andrić", 3));
 
-            bool dodaj = false;
 
             Console.WriteLine("Da li zelite da unesete novu knjigu: DA/NE ?");
-            if (Console.ReadLine() == "DA")
+            string provjera = Console.ReadLine();
+            while (provjera == "DA")
             {
-                dodaj = true;
-                while(dodaj == true)
-                {
-                    Knjiga k = new Knjiga();
-                    Console.WriteLine("Unesite naziv knjige.\n");
-                    k.Naslov = Console.ReadLine();
-                    Console.WriteLine("Unesite autora knjige.\n");
-                    k.Autor = Console.ReadLine();
-                    Console.WriteLine("Unesite kolicinu knjiga.\n");
-                    k.Kolicina = int.Parse(Console.ReadLine());
+                 Knjiga k = new Knjiga();
+                 Console.WriteLine("Unesite naziv knjige.\n");
+                 k.Naslov = Console.ReadLine();
+                 Console.WriteLine("Unesite autora knjige.\n");
+                 k.Autor = Console.ReadLine();
+                 Console.WriteLine("Unesite kolicinu knjiga.\n");
+                 k.Kolicina = int.Parse(Console.ReadLine());
 
-                    knjige.Add(k);
-                    
+                 knjige.Add(k);
+
+                Console.WriteLine("Da li zelite da unesete jos knjiga? DA/NE");
+                if(Console.ReadLine() == "NE")
+                {
+                    provjera = "NE";
+                    break;
                 }
-                
             }
 
             Thread tcpThread = new Thread(ObradiTCP);
@@ -96,7 +97,6 @@ namespace Server
             byte[] buffer = Encoding.UTF8.GetBytes($"Prijavljen. Tvoj ID je: {id}");
             stream.Write(buffer, 0, buffer.Length);
 
-            // TODO: dalje obrada iznajmljivanja, vraćanja itd.
             while (true)
             {
                 buffer = new byte[256];
@@ -105,7 +105,42 @@ namespace Server
 
                 if (poruka.StartsWith("IZNAJMI"))
                 {
-                    // ... (postojeća iznajmljivanje logika)
+                    string[] delovi = poruka.Split(';');
+                    id = int.Parse(delovi[1]);
+                    string naslov = delovi[2];
+                    string autor = delovi[3];
+                    int broj = int.Parse(delovi[4]);
+
+                    string kljuc = $"{naslov} - {autor}";
+
+                    bool nadjeno = false;
+                    Iznajmljivanje iznm = new Iznajmljivanje();
+
+                    foreach (var knjiga in knjige)
+                    {
+                        if (knjiga.Naslov == naslov && knjiga.Autor == autor)
+                        {
+                            knjiga.Kolicina -= broj;
+
+                            iznm.ClanID = id;
+                            iznm.KnjigaI = knjiga;
+                            iznm.BrojPrimeraka = knjiga.Kolicina;
+
+                            iznajmljivanja.Add(iznm);
+
+                            nadjeno = true;
+                            break;
+                        }
+                    }
+
+                    if (!nadjeno)
+                    {
+                        stream.Write(Encoding.UTF8.GetBytes("Greska: Knjiga ne postoji."), 0, "Greska: Knjiga ne postoji.".Length);
+                        continue;
+                    }
+
+                    string potvrda = "Uspesno iznajmljena.";
+                    stream.Write(Encoding.UTF8.GetBytes(potvrda), 0, potvrda.Length);
                 }
                 else if (poruka.StartsWith("VRATI"))
                 {
@@ -119,7 +154,6 @@ namespace Server
 
                     bool nadjeno = false;
 
-                    // Povećaj količinu u knjigama
                     foreach (var knjiga in knjige)
                     {
                         if (knjiga.Naslov == naslov && knjiga.Autor == autor)

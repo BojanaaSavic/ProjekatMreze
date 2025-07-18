@@ -13,6 +13,8 @@ namespace MREZENAJNOVIJIMOGUCI
         public DateTime DatumVracanja { get; set; }
         public int BrojPrimeraka { get; set; }
 
+        public Iznajmljivanje() { }
+
         public Iznajmljivanje(Knjiga knjiga, int clanId, int brojPrimeraka)
         {
             KnjigaI = knjiga;

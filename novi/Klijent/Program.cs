@@ -51,7 +51,8 @@ namespace Klijent
                 Console.WriteLine("\nMeni:");
                 Console.WriteLine("1. Proveri knjigu (UDP)");
                 Console.WriteLine("2. Iznajmi knjigu (TCP)");
-                Console.WriteLine("3. Vidi iznajmljene knjige");
+                Console.WriteLine("3. Vrati iznajmljenu knjige");
+                Console.WriteLine("4. Vidi iznajmljene knjige");
                 Console.WriteLine("0. Izlaz");
                 Console.Write("Izbor: ");
                 string izbor = Console.ReadLine();
@@ -67,6 +68,10 @@ namespace Klijent
 
                     case "3":
                         VratiKnjigu();
+                        break;
+
+                    case "4":
+                        PregledKnjiga();
                         break;
 
                     case "0":
@@ -139,6 +144,11 @@ namespace Klijent
                 if (i.KnjigaI.Naslov == naslov && i.KnjigaI.Autor == autor)
                     iznajmljene.Remove(i);
             }
+        }
+
+        private void PregledKnjiga()
+        {
+
         }
     }
 }
