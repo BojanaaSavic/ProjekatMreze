@@ -8,14 +8,14 @@ namespace MREZENAJNOVIJIMOGUCI
 {
     public class Iznajmljivanje
     {
-        public Knjiga Knjiga { get; set; } // "Naslov - Autor"
+        public Knjiga KnjigaI { get; set; } // "Naslov - Autor"
         public int ClanID { get; set; }
         public DateTime DatumVracanja { get; set; }
         public int BrojPrimeraka { get; set; }
 
         public Iznajmljivanje(Knjiga knjiga, int clanId, int brojPrimeraka)
         {
-            Knjiga = knjiga;
+            KnjigaI = knjiga;
             ClanID = clanId;
             BrojPrimeraka = brojPrimeraka;
             DatumVracanja = DateTime.Now.AddDays(14); // dve nedelje
