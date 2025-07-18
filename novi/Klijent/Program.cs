@@ -51,9 +51,8 @@ namespace Klijent
                 Console.WriteLine("\nMeni:");
                 Console.WriteLine("1. Proveri knjigu (UDP)");
                 Console.WriteLine("2. Iznajmi knjigu (TCP)");
-                Console.WriteLine("3. Vrati iznajmljenu knjige");
-                Console.WriteLine("4. Vidi iznajmljene knjige");
-                Console.WriteLine("0. Izlaz");
+                Console.WriteLine("3. Vrati iznajmljenu knjigu");
+                Console.WriteLine("4. Vidi dostupne knjige");
                 Console.Write("Izbor: ");
                 string izbor = Console.ReadLine();
 
@@ -73,9 +72,6 @@ namespace Klijent
                     case "4":
                         PregledKnjiga();
                         break;
-
-                    case "0":
-                        return;
                     default:
                         Console.WriteLine("Nepoznat izbor.");
                         break;
@@ -148,7 +144,21 @@ namespace Klijent
 
         private void PregledKnjiga()
         {
+              string zahtev = "LISTA";
+              byte[] zahtevBytes = Encoding.UTF8.GetBytes(zahtev);
+              udpClient.Send(zahtevBytes, zahtevBytes.Length, serverIP, udpPort);
 
+              IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+              byte[] odgovorBytes = udpClient.Receive(ref ep);
+              string odgovor = Encoding.UTF8.GetString(odgovorBytes);
+
+              Console.WriteLine("\nDostupne knjige:");
+              string[] knjige = odgovor.Split(';');
+              foreach (string knjiga in knjige)
+              {
+                if (!string.IsNullOrWhiteSpace(knjiga))
+                Console.WriteLine("- " + knjiga);
+              }
         }
     }
 }

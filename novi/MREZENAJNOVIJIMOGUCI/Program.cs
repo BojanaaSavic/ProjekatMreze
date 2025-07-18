@@ -1,6 +1,7 @@
 ﻿using MREZENAJNOVIJIMOGUCI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -120,6 +121,12 @@ namespace Server
                     {
                         if (knjiga.Naslov == naslov && knjiga.Autor == autor)
                         {
+                            if(knjiga.Kolicina < broj)
+                            {
+                                stream.Write(Encoding.UTF8.GetBytes("Greska: Nema dovoljno primjeraka."), 0, "Greska: Nema dovoljno primjeraka.".Length);
+                                break;
+                            }
+
                             knjiga.Kolicina -= broj;
 
                             iznm.ClanID = id;
@@ -189,9 +196,26 @@ namespace Server
             {
                 byte[] data = udpClient.Receive(ref ep);
                 string poruka = Encoding.UTF8.GetString(data);
-                string odgovor = ProveriKnjigu(poruka.Trim());
-                byte[] odgData = Encoding.UTF8.GetBytes(odgovor);
-                udpClient.Send(odgData, odgData.Length, ep);
+                if (poruka.StartsWith("LISTA"))
+                {
+                    List<string> dostupneKnjige = new List<string>();
+
+                    foreach (var knjiga in knjige)
+                    {
+                        if (knjiga.Kolicina > 0)
+                            dostupneKnjige.Add($"{knjiga.Naslov} - {knjiga.Autor}");
+                    }
+
+                    string odgovorL = string.Join(";", dostupneKnjige);
+                    byte[] odgL = Encoding.UTF8.GetBytes(odgovorL);
+                    udpClient.Send(odgL, odgL.Length, ep);
+                }
+                else
+                {
+                    string odgovor = ProveriKnjigu(poruka.Trim());
+                    byte[] odgData = Encoding.UTF8.GetBytes(odgovor);
+                    udpClient.Send(odgData, odgData.Length, ep);
+                }
             }
         }
 
